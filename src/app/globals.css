@@ -2,20 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Universal Styles */
+html {
+  @apply bg-light text-dark;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply text-body font-sans;
+}
+
+h1 {
+  @apply text-h1 font-brick;
+}
+
+h2 {
+  @apply text-h2 font-brick;
+}
+
+h3 {
+  @apply text-h3 font-sans;
 }

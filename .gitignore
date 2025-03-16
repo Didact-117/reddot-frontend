@@ -39,3 +39,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Ignore node_modules (this is critical)
+node_modules/
+
+# Ignore build output
+.next/
+out/
+
+# Ignore dependency locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db

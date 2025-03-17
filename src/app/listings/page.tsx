@@ -2,38 +2,67 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import AddJobListingModal from "@/components/AddJobsModal";
 import JobListings from "@/components/JobListings";
-import { addMultipleJobs } from "@/api-routes/job_routes";
+import { addMultipleJobs, getRemoteRocketshipJobs } from "@/api-routes/job_routes";
 import { FiPlus } from "react-icons/fi";
-import { MdWork, MdAssignment } from 'react-icons/md';
-import JobApplicationModal from "@/components/JobApplicationModal"; 
+import { MdAssignment } from 'react-icons/md';
+import JobApplicationModal from "@/components/JobApplicationModal";
 
 const ListingsPage = () => {
-  const [jsonInput, setJsonInput] = useState(""); // Stores raw JSON input
-  const [error, setError] = useState(""); // Stores validation error
-  const [listingsUpdated, setListingsUpdated] = useState(false); // Track if listings need to be refreshed
+  const [error, setError] = useState("");
+  const [listingsUpdated, setListingsUpdated] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showApplyModal, setShowApplyModal] = useState(false); 
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [fetchedJobs, setFetchedJobs] = useState([]);
 
-  // ✅ Handle Job Submission
-  const handleAddJobs = async () => {
+  // ✅ Handle Job Submission from Modal Filters
+  const handleAddJobs = async (filters) => {
     try {
-      const jobs = JSON.parse(jsonInput); // Parse JSON input
-      if (!Array.isArray(jobs)) {
-        throw new Error("Invalid format: Expected an array of jobs.");
+      console.log("🚀 Submitting Filters:", filters);
+  
+      // ✅ Fetch jobs from Remote RocketShip API
+      const fetchResponse = await getRemoteRocketshipJobs({
+        seniorityFilters: filters.seniority,
+        locationFilters: filters.location,
+        jobTitleFilters: filters.jobTitle,
+        auth_token: filters.token,
+      });
+  
+      console.log("🌍 Fetched Jobs Response:", fetchResponse);
+  
+      if (!fetchResponse.success) {
+        throw new Error(fetchResponse.message);
       }
-
-      // ✅ Call API to add jobs
-      const response = await addMultipleJobs(jobs);
-      if (response.success) {
-        setShowModal(false);
-        setJsonInput("");
-        setListingsUpdated(true); // ✅ Trigger job listings refresh
-      } else {
-        setError(response.message);
+  
+      // ✅ Ensure correct format before sending
+      const formattedJobs = fetchResponse.data.map((job) => ({
+        job_title: job.job_title || "Unknown Title",
+        company: job.company || "Unknown Company",
+        job_url: job.job_url || "",
+      }));
+  
+      if (!Array.isArray(formattedJobs)) {
+        throw new Error("Formatted jobs must be an array");
       }
+  
+      console.log("✅ Jobs Ready to be Sent (Final Check):", JSON.stringify({ jobs: formattedJobs }, null, 2));
+  
+      // ✅ Send jobs to backend
+      const addResponse = await addMultipleJobs(formattedJobs);
+  
+      console.log("📩 Add Jobs Response:", addResponse);
+  
+      if (!addResponse.success) {
+        console.error("❌ Backend Error (Final Check):", addResponse.message);
+        throw new Error(addResponse.message);
+      }
+  
+      setShowModal(false);
+      setListingsUpdated(true);
     } catch (err) {
-      setError(err.message || "Invalid JSON format.");
+      console.error("❌ Error:", err);
+      setError(err.message || "Failed to fetch or add jobs.");
     }
   };
 
@@ -46,9 +75,8 @@ const ListingsPage = () => {
       <div className="flex flex-col gap-10 px-10 py-10 overflow-y-auto" style={{ flexGrow: 1, minHeight: "100vh" }}>
         <Header title="Your Job Listings" />
 
-        {/* ✅ Buttons Container - Placing Buttons Side by Side */}
+        {/* ✅ Buttons Container */}
         <div className="flex items-center gap-6">
-          {/* ✅ Add Job Listings Button */}
           <button
             className="flex items-center gap-2 text-black text-2xl font-bold hover:text-gray-700 transition"
             onClick={() => setShowModal(true)}
@@ -57,7 +85,6 @@ const ListingsPage = () => {
             <h3>Add Job Listings</h3>
           </button>
 
-          {/* ✅ Apply Button - Opens JobApplicationModal */}
           <button
             className="flex items-center gap-4 px-6 py-3 bg-[#D90824] text-[#222222] font-bold rounded-md hover:bg-red-700 transition"
             onClick={() => setShowApplyModal(true)}
@@ -67,34 +94,20 @@ const ListingsPage = () => {
           </button>
         </div>
 
-        {/* ✅ Render Job Listings Modal if showModal is true */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
-              <h2 className="text-2xl font-bold mb-4">Add Job Listings</h2>
-              <textarea
-                className="w-full h-40 border p-2"
-                placeholder='Enter job listings as JSON'
-                value={jsonInput}
-                onChange={(e) => setJsonInput(e.target.value)}
-              ></textarea>
-              {error && <p className="text-red-500">{error}</p>}
-              <div className="flex justify-end gap-4 mt-4">
-                <button
-                  className="px-4 py-2 bg-gray-300 rounded"
-                  onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-[#D90824] text-white rounded hover:bg-red-700"
-                  onClick={handleAddJobs} // ✅ This will now actually trigger!
-                >
-                  Add Jobs
-                </button>
-              </div>
-            </div>
+        {/* ✅ Show error messages if any */}
+        {error && <p className="text-red-500 font-semibold mt-4">{error}</p>}
+
+        {/* ✅ Render fetched jobs for debugging */}
+        {fetchedJobs.length > 0 && (
+          <div className="bg-gray-100 p-4 rounded mt-4">
+            <h3 className="font-bold">Fetched Jobs (Debugging):</h3>
+            <pre className="text-sm overflow-x-auto">{JSON.stringify(fetchedJobs, null, 2)}</pre>
           </div>
+        )}
+
+        {/* ✅ Render Job Listings Modal */}
+        {showModal && (
+          <AddJobListingModal setShowModal={setShowModal} handleAddJobs={handleAddJobs} />
         )}
 
         {/* Job Listings Table */}
@@ -104,10 +117,7 @@ const ListingsPage = () => {
         {showApplyModal && <JobApplicationModal onClose={() => setShowApplyModal(false)} />}
       </div>
     </div>
-
   );
-
-
 };
 
 export default ListingsPage;

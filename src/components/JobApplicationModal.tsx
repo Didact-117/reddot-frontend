@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getUserResumes } from "@/api-routes/resume_routes";
-import { generateAIResponse, applyToLeverJobs } from "@/api-routes/application_routes";
+import { generateAIResponse, applyToJobs } from "@/api-routes/application_routes";
 
 interface JobApplicationModalProps {
   onClose: () => void;
@@ -36,28 +36,43 @@ export default function JobApplicationModal({ onClose }: JobApplicationModalProp
       alert("Please select a resume.");
       return;
     }
-
+  
     setLoading(true);
     setStatusMessage("Generating responses...");
-
+  
     try {
       const response = await generateAIResponse(selectedResume, maxApplications);
-
+  
       if (response.success) {
         console.log("AI Response Received:", response.data);
-
-        // ✅ Extract only the required format (urls_with_fields)
-        const extractedUrlsWithFields = Object.entries(response.data.job_listings).map(([url, jobData]: any) => ({
-          url,
-          fields: jobData.ai_generated_fields.fields,
-        }));
-
+  
+        // ✅ SAFE EXTRACTION - Avoid crashing if fields are missing
+        const extractedUrlsWithFields = Object.entries(response.data.job_listings)
+          .map(([url, jobData]: any) => {
+            if (!jobData || !jobData.ai_generated_fields) {
+              console.warn(`[WARNING] No AI-generated fields for: ${url}`);
+              return null; // 🚀 Skip invalid job listings
+            }
+  
+            return {
+              url,
+              fields: jobData.ai_generated_fields.fields || [], // ✅ Default to empty array
+            };
+          })
+          .filter((job) => job !== null); // ✅ Remove `null` values from the array
+  
+        if (extractedUrlsWithFields.length === 0) {
+          setStatusMessage("No valid job listings found.");
+          setLoading(false);
+          return;
+        }
+  
         setUrlsWithFields(extractedUrlsWithFields);
         setStatusMessage("Now opening browser...");
-
+  
         // ✅ Call apply function
-        await applyToLeverJobs(extractedUrlsWithFields);
-
+        await applyToJobs(extractedUrlsWithFields);
+  
         // ✅ Close modal after applying
         onClose();
         window.location.reload();
@@ -68,7 +83,7 @@ export default function JobApplicationModal({ onClose }: JobApplicationModalProp
       console.error("Error generating responses:", error);
       setStatusMessage("Error generating responses.");
     }
-
+  
     setLoading(false);
   };
 

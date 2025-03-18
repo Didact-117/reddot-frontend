@@ -2,10 +2,10 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000/applications";
 
-export const applyToLeverJobs = async (urlsWithFields: any) => {
+export const applyToJobs = async (urlsWithFields: any) => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/apply-lever`,
+      `${API_BASE_URL}/apply`,
       { urls_with_fields: urlsWithFields },
       { withCredentials: true }
     );

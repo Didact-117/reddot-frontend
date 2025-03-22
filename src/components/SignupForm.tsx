@@ -50,7 +50,7 @@ export default function SignupForm() {
     }
 
     setLoading(false);
-    router.push("/dashboard"); // Redirect to the main page after login
+    router.push("/profile"); // Redirect to the main page after login
   };
 
   return (

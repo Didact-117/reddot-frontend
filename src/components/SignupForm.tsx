@@ -17,6 +17,7 @@ export default function SignupForm() {
     email: "",
     password: "",
     linkedin_url: "",
+    gender: "",
   });
 
   const [loading, setLoading] = useState(false); // Loading state for button
@@ -88,9 +89,28 @@ export default function SignupForm() {
           </div>
         ))}
 
+        {/* Gender Dropdown */}
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <label className="w-[200px] text-lg font-mono text-[#222222]">Gender:</label>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={(e) =>
+              setFormData({ ...formData, gender: e.target.value })
+            }
+            className="flex-grow p-3 w-full sm:w-[420px] bg-gray-300 border border-[#D90824] rounded-md text-black focus:outline-none focus:ring-2 focus:ring-[#D90824]"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+
         {/* Error Message */}
         {error && <p className="text-red-600 font-bold text-center">{error}</p>}
-
+        
         {/* Signup Button */}
         <button
           type="submit"

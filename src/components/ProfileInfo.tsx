@@ -70,6 +70,7 @@ const ProfileInfo = () => {
     { label: "Address", name: "address" },
     { label: "State/Province", name: "state" },
     { label: "Country", name: "country" },
+    { label: "Gender", name: "gender" },
   ];
 
   return (
@@ -114,14 +115,29 @@ const ProfileInfo = () => {
           <span className="text-[#FFFFFF] font-bold text-lg w-1/3 text-right pr-4">{label}:</span>
 
           {/* Editable Input */}
-          <input
-            type="text"
-            name={name}
-            value={formData[name]}
-            onChange={handleChange}
-            readOnly={readOnly || !isEditing}
-            className={`w-2/3 bg-[#F5F5F5] text-[#222222] border border-[#D90824] rounded-md px-3 py-2 ${isEditing && !readOnly ? "border-blue-500" : ""}`}
-          />
+          {isEditing && name === "gender" ? (
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-2/3 bg-[#F5F5F5] text-[#222222] border border-blue-500 rounded-md px-3 py-2"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            ) : (
+              <input
+                type="text"
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                readOnly={readOnly || !isEditing}
+                className={`w-2/3 bg-[#F5F5F5] text-[#222222] border border-[#D90824] rounded-md px-3 py-2 ${isEditing && !readOnly ? "border-blue-500" : ""}`}
+              />
+            )}
         </div>
       ))}
 

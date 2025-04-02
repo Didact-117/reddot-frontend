@@ -125,6 +125,7 @@ const AddJobListingModal = ({ setShowModal, handleAddJobs }) => {
     "Product Adoption Specialist",
     "Product Analyst",
     "Product Designer (UI/UX)",
+    "Product Manager",
     "Product Marketing",
     "Product Operations",
     "Product Specialist",
